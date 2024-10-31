@@ -4,9 +4,11 @@ phases:
   install:
     runtime-versions:
       nodejs: 16
+
   pre_build:
     commands:
-      - echo Nothing to do in the pre_build phase...
+      # 登录ECR
+      - aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin 178973955532.dkr.ecr.ap-northeast-1.amazonaws.com
 
   build:
     commands:
@@ -15,14 +17,25 @@ phases:
       - echo npm install completed on `date`
       - npm run build
       - echo npm run build completed on `date`
+      # 设置TAG
+      - TAG=`date +%Y%m%d%H%M%S`
+      # 构建镜像
+      - docker build -t 178973955532.dkr.ecr.ap-northeast-1.amazonaws.com/dp-ecr-httpd:$TAG ./
+      - echo docker build completed on `date`
+      # 推送镜像
+      - docker push 178973955532.dkr.ecr.ap-northeast-1.amazonaws.com/dp-ecr-httpd:$TAG
+      - echo docker push completed on `date`
 
   post_build:
     commands:
       - echo Build completed on `date`
-      - ls -l ./dist/shop/
+      # 生成部署需要的文件imageDefinitions.json
+      - echo 生成部署需要的文件imageDefinitions.json
+      # CodeDeploy使用imageDefinitions.json更新ECS Service
+      - printf '[{"name":"myhttpd","imageUri":"%s"}]' 178973955532.dkr.ecr.ap-northeast-1.amazonaws.com/dp-ecr-httpd:$TAG > imageDefinitions.json
+      - cat imageDefinitions.json
 
 artifacts:
   files:
-    - dist/shop/*
-    - dist/shop/assets/*
-    - appspec.yml
+    - imagedefinitions.json
+
