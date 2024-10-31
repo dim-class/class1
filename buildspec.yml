@@ -34,8 +34,7 @@ phases:
       # CodeDeploy使用imageDefinitions.json更新ECS Service
       - printf '[{"name":"myhttpd","imageUri":"%s"}]' 779846781872.dkr.ecr.ap-northeast-1.amazonaws.com/class1:$TAG > imageDefinitions.json
       - cat imageDefinitions.json
-
-artifacts:
-  files:
-    - imagedefinitions.json
+  artifacts:
+    files:
+      - imagedefinitions.json
 
