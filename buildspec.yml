@@ -4,12 +4,10 @@ phases:
   install:
     runtime-versions:
       nodejs: 16
-
   pre_build:
     commands:
       # 登录ECR
-      - aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin 779846781872.dkr.ecr.ap-northeast-1.amazonaws.com/class1
-
+      - aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin 779846781872.dkr.ecr.ap-northeast-1.amazonaws.com
   build:
     commands:
       - echo Build started on `date`
@@ -20,21 +18,19 @@ phases:
       # 设置TAG
       - TAG=`date +%Y%m%d%H%M%S`
       # 构建镜像
-      - docker build -t 779846781872.dkr.ecr.ap-northeast-1.amazonaws.com/class1:$TAG ./
+      - docker build -t 779846781872.dkr.ecr.ap-northeast-1.amazonaws.com/class1:latest:$TAG ./
       - echo docker build completed on `date`
       # 推送镜像
-      - docker push 779846781872.dkr.ecr.ap-northeast-1.amazonaws.com/class1:$TAG
+      - docker push 779846781872.dkr.ecr.ap-northeast-1.amazonaws.com/class1:latest:$TAG
       - echo docker push completed on `date`
-
   post_build:
     commands:
       - echo Build completed on `date`
       # 生成部署需要的文件imageDefinitions.json
       - echo 生成部署需要的文件imageDefinitions.json
       # CodeDeploy使用imageDefinitions.json更新ECS Service
-      - printf '[{"name":"myhttpd","imageUri":"%s"}]' 779846781872.dkr.ecr.ap-northeast-1.amazonaws.com/class1:$TAG > imageDefinitions.json
+      - printf '[{"name":"mynginx","imageUri":"%s"}]' 779846781872.dkr.ecr.ap-northeast-1.amazonaws.com/class1:latest:$TAG > imageDefinitions.json
       - cat imageDefinitions.json
-  artifacts:
-    files:
-      - imagedefinitions.json
-
+artifacts:
+  files:
+    - imagedefinitions.json
